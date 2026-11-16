@@ -1,0 +1,23 @@
+feature,area,priority,original,clone,notes
+4 éléments de départ,core,must,yes,no,
+Combiner 2 éléments pour en créer un,core,must,yes,no,commutatif
+Recettes à résultats multiples,core,should,yes,no,
+Inventaire par groupes,core,must,yes,no,14 groupes dans l'original ; groupes originaux ici
+Encyclopédie / livre des éléments,core,must,yes,no,
+Liste des combinaisons découvertes,core,should,yes,no,
+Indice avec minuteur de recharge,core,should,yes,no,
+Message de récompense à chaque création,core,could,yes,no,textes originaux
+Sauvegarde locale de la progression,core,must,yes,no,
+Réinitialisation avec confirmation,core,should,yes,no,
+Mode Planète (monde animé),mode,must,yes,no,scène originale
+Écran de fin de groupe / victoire,core,could,yes,no,
+Réglages (son),settings,could,yes,no,
+Installation PWA iPad/iPhone,platform,must,no,no,propre au clone
+Mode Mission,mode,could,yes,no,hors première version
+Mode Quêtes,mode,could,yes,no,hors première version
+Mode Artefacts,mode,could,yes,no,hors première version
+Mode Diable / sombre,mode,could,yes,no,hors première version
+Monnaie Divine Glow / achats,economy,skip,yes,skip,modèle économique non repris
+Publicités,economy,skip,yes,skip,
+13 langues,i18n,skip,yes,skip,français seulement
+Contenu sous licence (citations, illustrations, musique),content,skip,yes,skip,remplacé par du contenu original

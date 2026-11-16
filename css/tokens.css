@@ -1,0 +1,22 @@
+/* Jetons de design MainDeDieu (rôles, pas de valeurs en dur dans les composants). */
+:root {
+  --bg: #0f1226;
+  --bg-2: #171b3a;
+  --surface: #1e2348;
+  --surface-2: #272d5c;
+  --border: #6068c0;
+  --text: #f4f1e6;
+  --text-muted: #b9bde0;
+  --accent: #f0c24b;
+  --on-accent: #1a1530;
+  --success: #6fe0a0;
+  --danger: #ff8a8a;
+  --info: #8ec5ff;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 22px;
+  --font: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 12px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-xxl: 40px;
+  --shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  --motion: 180ms;
+}
