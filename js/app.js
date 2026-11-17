@@ -13,11 +13,11 @@
   function saveJSON(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* stockage plein ou bloqué */ } }
 
   const saves = { classique: G.sanitize(loadJSON('classique')), planete: G.sanitize(loadJSON('planete')) };
-  const settings = Object.assign({ sound: true, view: 'round' }, loadJSON('settings') || {});
-  if (settings.view !== 'round' && settings.view !== 'land') settings.view = 'round';
+  const settings = Object.assign({ sound: true }, loadJSON('settings') || {});
 
-  const ui = { screen: 'home', mode: 'classique', a: null, b: null, busy: false, group: 'all', msg: null, recent: [], modal: null, shake: false };
-  let sceneNode = null, sceneKey = '';
+  const ui = { screen: 'home', mode: 'classique', a: null, b: null, busy: false, group: 'all', msg: null, recent: [], modal: null, shake: false, big: false };
+  let sceneNode = null, sceneKey = '', scene3d = null;
+  function resetScene() { if (scene3d) { try { scene3d.destroy(); } catch (e) { /* ignoré */ } } scene3d = null; sceneNode = null; sceneKey = ''; }
 
   // ---------- son ----------
   let actx = null;
@@ -110,12 +110,12 @@
 
   function sceneHtml() {
     return '<div class="scene" id="scene"><span class="tag" id="scenetag"></span>' +
-      '<button class="viewbtn" data-act="view" aria-label="Changer de vue de la planète">' + (settings.view === 'round' ? '🏞️' : '🪐') + '</button></div>';
+      '<button class="viewbtn" data-act="big" aria-label="' + (ui.big ? 'Réduire la planète' : 'Agrandir la planète') + '">' + (ui.big ? '⤡' : '⤢') + '</button></div>';
   }
 
   function atelierView() {
     const m = MODES[ui.mode];
-    return topBar(m.icon + ' ' + m.name, true) + '<main>' + (ui.mode === 'planete' ? sceneHtml() : '') + atelierBench() + '</main>' + tabBar();
+    return topBar(m.icon + ' ' + m.name, true) + '<main' + (ui.big && ui.mode === 'planete' ? ' class="bigscene"' : '') + '>' + (ui.mode === 'planete' ? sceneHtml() : '') + atelierBench() + '</main>' + tabBar();
   }
 
   function livreView() {
@@ -145,7 +145,6 @@
       return '<div class="row"><span>' + MODES[m].icon + ' ' + MODES[m].name + ' : ' + saves[m].found.length + ' éléments</span><button class="btn danger" data-act="reset" data-mode="' + m + '">Réinitialiser</button></div>';
     }).join('');
     const body = '<div class="settings">' + sw('sound', settings.sound, 'Sons') +
-      '<div class="row"><span>Vue de la planète</span><button class="btn" data-act="view">' + (settings.view === 'round' ? 'Ronde' : 'Paysage') + '</button></div>' +
       resets + '<p class="note">Tout est enregistré sur cet appareil uniquement. Tous droits réservés.</p></div>';
     if (ui.screen === 'reglages' && ui.from === 'home') return '<header class="top"><button class="iconbtn" data-act="go" data-to="home" aria-label="Retour">‹</button><h1>⚙️ Réglages</h1></header><main>' + body + '</main>';
     return topBar('⚙️ Réglages', true) + '<main>' + body + '</main>' + tabBar();
@@ -189,16 +188,20 @@
     const slot = document.getElementById('scene');
     if (!slot) return;
     const s = st();
-    const key = s.found.length + '|' + settings.view;
-    if (!sceneNode || key !== sceneKey) {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'position:absolute;inset:0';
-      wrap.innerHTML = P.render(s.found, settings.view, ui.recent);
-      sceneNode = wrap; sceneKey = key;
+    if (!sceneNode) {
+      sceneNode = document.createElement('div');
+      sceneNode.style.cssText = 'position:absolute;inset:0';
+      scene3d = window.MDD_PLANET3D ? window.MDD_PLANET3D.create(sceneNode) : null;
+      sceneKey = '';
     }
     slot.insertBefore(sceneNode, slot.firstChild);
+    if (s.found.length !== sceneKey) {
+      if (scene3d) scene3d.update(s.found, ui.recent);
+      else sceneNode.innerHTML = P.render(s.found, 'round', ui.recent);  // repli 2D si WebGL indisponible
+      sceneKey = s.found.length;
+    }
     const n = D.elements.filter(function (e) { return e.zone && s.found.indexOf(e.id) >= 0; }).length;
-    document.getElementById('scenetag').textContent = n + (n > 1 ? ' choses' : ' chose') + ' sur ta planète';
+    document.getElementById('scenetag').textContent = n + (n > 1 ? ' choses' : ' chose') + ' sur ta planète · fais-la tourner';
   }
 
   // ---------- actions ----------
@@ -261,7 +264,7 @@
   function doReset(mode) {
     saves[mode] = G.newState(); saveJSON(mode, saves[mode]);
     if (mode === ui.mode) { clearSlots(); ui.msg = null; ui.recent = []; ui.group = 'all'; }
-    sceneNode = null; ui.modal = null; render();
+    resetScene(); ui.modal = null; render();
   }
 
   $app.addEventListener('click', function (ev) {
@@ -269,7 +272,7 @@
     if (!b) return;
     const d = b.dataset;
     switch (d.act) {
-      case 'mode': ui.mode = d.mode; ui.screen = 'atelier'; ui.group = 'all'; clearSlots(); ui.msg = null; ui.recent = []; sceneNode = null; render(); break;
+      case 'mode': ui.mode = d.mode; ui.screen = 'atelier'; ui.group = 'all'; clearSlots(); ui.msg = null; ui.recent = []; resetScene(); render(); break;
       case 'go':
         ui.from = ui.screen === 'home' ? 'home' : '';
         ui.screen = d.to; if (d.to === 'atelier' || d.to === 'livre') ui.from = ''; render(); break;
@@ -277,7 +280,7 @@
       case 'slot': if (!ui.busy) { ui[d.which] = null; render(); } break;
       case 'hint': useHint(); break;
       case 'group': ui.group = d.g; render(); break;
-      case 'view': settings.view = settings.view === 'round' ? 'land' : 'round'; saveJSON('settings', settings); render(); break;
+      case 'big': ui.big = !ui.big; render(); break;
       case 'sound': settings.sound = !settings.sound; saveJSON('settings', settings); render(); break;
       case 'reset': ui.modal = { type: 'reset', mode: d.mode }; render(); break;
       case 'doreset': doReset(d.mode); break;

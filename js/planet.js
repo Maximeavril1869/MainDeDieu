@@ -1,4 +1,4 @@
-/* MainDeDieu - scène « Planète » : deux vues (ronde et paysage), générées en SVG. */
+/* MainDeDieu - scène « Planète » 2D en SVG : repli si la 3D (WebGL) n'est pas disponible. */
 (function (root) {
   const D = (typeof module !== 'undefined' && module.exports) ? require('./data.js') : root.MDD_DATA;
 
@@ -71,42 +71,9 @@
     return g + '</svg>';
   }
 
-  function land(found, fresh) {
-    const W = 400, H = 240, G = 150;
-    const day = has(found, 'soleil');
-    const night = !day && (has(found, 'lune') || has(found, 'etoile') || has(found, 'nuit'));
-    const top = day ? '#4aa3e0' : (night ? '#070a24' : '#3a3f63');
-    const bot = day ? '#bfe6fb' : (night ? '#252d66' : '#5a5f86');
-    let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Ton monde, vu de côté" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">';
-    g += '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + top + '"/><stop offset="1" stop-color="' + bot + '"/></linearGradient></defs>';
-    g += '<rect width="' + W + '" height="' + H + '" fill="url(#sky)"/>';
-    g += stars(found, W, G, 45);
-    if (has(found, 'montagne')) g += '<polygon points="30,' + G + ' 110,70 190,' + G + '" fill="#7d8299"/><polygon points="150,' + G + ' 250,50 350,' + G + '" fill="#6c7188"/><polygon points="110,70 100,88 120,88" fill="#fff"/><polygon points="250,50 238,72 262,72" fill="#fff"/>';
-    g += '<rect y="' + G + '" width="' + W + '" height="' + (H - G) + '" fill="' + (has(found, 'plante') ? '#4f9a4a' : '#8b6b4a') + '"/>';
-    if (has(found, 'desert')) g += '<ellipse cx="330" cy="' + (G + 14) + '" rx="60" ry="12" fill="#d9b86c"/>';
-    if (has(found, 'mer')) g += '<rect y="205" width="' + W + '" height="' + (H - 205) + '" fill="#2f6fb5"/><path d="M0 205 q25 -8 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" fill="none" stroke="#9fd0ff" stroke-width="2"/>';
-    items(found).forEach(function (e) {
-      const cls = fresh.has(e.id) ? 'pop' : '';
-      const x = r1(18 + h(e.id, 1) * (W - 36));
-      if (e.zone === 'g') {
-        const y = r1(G + 14 + h(e.id, 2) * 38);
-        g += '<text class="' + cls + '" x="' + x + '" y="' + y + '" font-size="22" text-anchor="middle">' + e.emoji + '</text>';
-      } else if (e.zone === 'w') {
-        if (!has(found, 'mer')) return;
-        const y = r1(222 + h(e.id, 2) * 14);
-        g += '<text class="' + cls + '" x="' + x + '" y="' + y + '" font-size="16" text-anchor="middle">' + e.emoji + '</text>';
-      } else {
-        const y = r1(26 + h(e.id, 2) * 80), dx = r1(8 + h(e.id, 3) * 14), dur = r1(6 + h(e.id, 4) * 8);
-        g += '<g><text class="' + cls + '" x="' + x + '" y="' + y + '" font-size="20" text-anchor="middle">' + e.emoji + '</text>' +
-          '<animateTransform attributeName="transform" type="translate" values="0 0;' + dx + ' 0;0 0;-' + dx + ' 0;0 0" dur="' + dur + 's" repeatCount="indefinite"/></g>';
-      }
-    });
-    return g + '</svg>';
-  }
-
   function render(foundList, view, freshList) {
     const found = new Set(foundList), fresh = new Set(freshList || []);
-    return view === 'land' ? land(found, fresh) : round(found, fresh);
+    return round(found, fresh);
   }
 
   const api = { render: render, hash: h };

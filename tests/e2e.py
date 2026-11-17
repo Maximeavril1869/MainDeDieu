@@ -12,7 +12,7 @@ def check(cond, label):
 
 try:
     with sync_playwright() as p:
-        b = p.chromium.launch()
+        b = p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
         ctx = b.new_context(viewport={'width': 390, 'height': 780}, device_scale_factor=2, has_touch=True)
         pg = ctx.new_page()
         pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
@@ -58,14 +58,24 @@ try:
         # Planète
         pg.click('.tabbar [data-to=home]')
         pg.click('[data-mode=planete]')
-        check(pg.locator('#scene svg').count() == 1, 'S06 : scène Planète affichée')
         check(pg.locator('.tile').count() == 4, 'progression Planète séparée de Genèse')
         for a, c in [('terre', 'eau'), ('terre', 'terre'), ('feu', 'terre'), ('eau', 'eau')]:
             pg.click(f'.tile[data-id={a}]'); pg.click(f'.tile[data-id={c}]'); pg.wait_for_timeout(600)
-        shot('S06-planete-ronde')
-        pg.click('[data-act=view]')
-        check('Ton monde' in pg.get_attribute('#scene svg', 'aria-label'), 'bascule vers la vue paysage')
-        shot('S06-planete-paysage')
+        shot('S06-planete')
+        check(pg.locator('#scene canvas').count() == 1, 'la planète est en 3D (canvas WebGL)')
+        box = pg.locator('#scene canvas').bounding_box()
+        check(box['height'] > 250, 'scène assez grande (%dpx de haut)' % box['height'])
+        before = pg.locator('#scene canvas').screenshot()
+        cx, cy = box['x'] + box['width'] / 2, box['y'] + box['height'] / 2
+        pg.mouse.move(cx, cy); pg.mouse.down(); pg.mouse.move(cx + 120, cy + 30, steps=8); pg.mouse.up()
+        pg.wait_for_timeout(400)
+        check(pg.locator('#scene canvas').screenshot() != before, 'glisser le doigt fait tourner la planète')
+        pg.click('[data-act=big]')
+        check(pg.locator('.bench').is_hidden(), 'plein écran : l’atelier est masqué')
+        pg.wait_for_timeout(500)
+        shot('S06-planete-agrandie')
+        pg.click('[data-act=big]')
+        check(pg.locator('.bench').is_visible(), 'retour à la vue normale')
 
         # Réglages / réinitialisation
         pg.click('.tabbar [data-to=reglages]')
@@ -75,6 +85,14 @@ try:
         pg.click('[data-act=doreset]')
         pg.click('.tabbar [data-to=atelier]')
         check(pg.locator('.tile').count() == 4, 'réinitialisation : retour à 4 éléments')
+
+        # Repli 2D si WebGL est indisponible
+        c2 = b.new_context(viewport={'width': 390, 'height': 780})
+        p2 = c2.new_page()
+        p2.add_init_script("HTMLCanvasElement.prototype.getContext = function () { return null; }")
+        p2.goto('http://localhost:8765/index.html'); p2.click('[data-mode=planete]'); p2.wait_for_timeout(500)
+        check(p2.locator('#scene svg').count() == 1, 'sans WebGL : repli sur la planète 2D')
+        c2.close()
 
         # iPad
         pg.set_viewport_size({'width': 834, 'height': 1194})

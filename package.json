@@ -1,0 +1,10 @@
+{
+  "name": "maindedieu",
+  "private": true,
+  "description": "MainDeDieu : jeu de fusion d'éléments (PWA)",
+  "scripts": {
+    "build": "esbuild src/planet3d.js --bundle --minify --format=iife --outfile=vendor/planet3d.js",
+    "test": "node tests/data.test.js"
+  },
+  "devDependencies": { "esbuild": "^0.25.0", "three": "^0.170.0" }
+}

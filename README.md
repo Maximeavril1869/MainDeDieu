@@ -7,7 +7,7 @@ Application web installable (PWA) pour iPad Pro et iPhone. Tout est local : aucu
 ## Modes
 
 - **Genèse** : le mode classique, sans limite de temps.
-- **Planète** : le même jeu, avec une planète qui prend vie à chaque élément créé. Deux vues au choix : planète ronde ou paysage.
+- **Planète** : le même jeu, avec une planète 3D stylisée qui prend vie à chaque élément créé. Tu la fais tourner au doigt (et pince pour zoomer), et le bouton en haut à droite de la scène l'agrandit en plein écran.
 
 La progression de chaque mode est indépendante.
 
@@ -20,6 +20,7 @@ Sur iPhone/iPad : ouvrir l'adresse dans Safari, puis Partager, puis « Sur l'éc
 ## Tester
 
 ```
+npm install && npm run build   # reconstruit vendor/planet3d.js (uniquement si src/planet3d.js change)
 node tests/data.test.js     # cohérence de l'arbre de recettes et logique du jeu
 python3 tests/e2e.py        # parcours complet dans un navigateur (playwright)
 ```
